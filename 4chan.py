@@ -9,6 +9,7 @@ group.add_argument("-t", "--thread", help="Link to thread. REQUIRED")
 group.add_argument("-l", "--list", help="Path to list. REQUIRED")
 parser.add_argument("-f", "--folder",dest="userfolder", help="Specify in which folder to save the thread. If folder doesnt exist or not specified creates one with thread name")
 parser.add_argument("-m", "--minutes", help="Autorun every -m or --minutes. OFF if not specified")
+parser.add_argument("-b", "--batch", help="Batch download without making subfolder for threads")
 args = parser.parse_args()
 forb=('<>:"/\|?*')
 left='href="//'
@@ -50,7 +51,8 @@ def Scrap(url):
     dirname = soup.find("title").text
     print(dirname,'\n')
     dirname=dirname[dirname.find('-')+2:dirname.rfind('-')-1]
-    mkdir(dirname)
+    if not args.batch:
+        mkdir(dirname)
     #Loop media download
     for index,c in enumerate(containers):
         s = (str(c))      #s=whole eg[<div class="fileText" id="fT3962922">File: <a href="//i.4cdn.org/wsg/1622452136055.webm" target="_blank">Some stuff never changes.webm</a> (3.85 MB, 336x190)</div>]
@@ -76,7 +78,9 @@ def Scrap(url):
 #ARGS:([-t, --thread] or [-l,--list] Required), [-f, --folder (default 4chan folder)] [-m, --minutes (default off)]
 if __name__ == '__main__':
     if args.userfolder:
-        mkdir(args.userfolder). 
+        if not os.path.exists(args.userfolder):
+            mkdir(args.userfolder)
+        os.chdir(args.userfolder)
     else:
         mkdir('4chan')
     while True:
@@ -90,6 +94,7 @@ if __name__ == '__main__':
         if args.thread:
             Scrap(args.thread)
         if args.minutes:
+            print('Sleepign for', args.minutes, 'minutes')
             time.sleep(int(args.minutes)*60)
         if not args.minutes:
             break
