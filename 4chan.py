@@ -3,7 +3,13 @@
 
 import requests, time, os, sys, re, argparse
 from bs4 import BeautifulSoup
-
+parser = argparse.ArgumentParser()
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument("-t", "--thread", help="Link to thread. REQUIRED")
+group.add_argument("-l", "--list", help="Path to list. REQUIRED")
+parser.add_argument("-f", "--folder",dest="userfolder", help="Specify in which folder to save the thread. If folder doesnt exist or not specified creates one with thread name")
+parser.add_argument("-m", "--minutes", help="Autorun every -m or --minutes. OFF if not specified")
+args = parser.parse_args()
 forb=('<>:"/\|?*')
 left='href="//'
 right='" target'
@@ -67,15 +73,24 @@ def Scrap(url):
             print ('HTML:',s,'\nLINK: ',s[s.index(left)+len(left):s.index(right)],'\nFull',c.text,'\nCLEAN NAME:', (n[n.index('File: ')+len('File: '):n.index(' (')]),'\nINDEX:',index,'\nSaved as:',name,'\nPercentage Completed:',round((index+1)*100/len(containers)),'\nFrom:',dirname,'\n') #rule of three for percentage
     os.chdir('..')
 
-
-while 1:
-    file1 = open('4links.txt', 'r')
-    Lines = file1.readlines()
-    file1.close()
-    Lines = [x.strip() for x in Lines]
-    for url in Lines:
-        Scrap(url)
-        time.sleep(1)
-    for i in reversed(range(1,21)):#repeat every 20 minutes
-        print(i,'minutes until next scrap')
-        time.sleep(60)
+#ARGS:([-t, --thread] or [-l,--list] Required), [-f, --folder (default 4chan folder)] [-m, --minutes (default off)]
+if __name__ == '__main__':
+    if args.userfolder:
+        mkdir(args.userfolder). 
+    else:
+        mkdir('4chan')
+    while True:
+        if args.list:
+            file1 = open(args.list, 'r')
+            Lines = file1.readlines()
+            file1.close()
+            Lines = [x.strip() for x in Lines]
+            for url in Lines:
+                Scrap(url)
+        if args.thread:
+            Scrap(args.thread)
+        if args.minutes:
+            time.sleep(int(args.minutes)*60)
+        if not args.minutes:
+            break
+    print('Done!')
