@@ -2,7 +2,7 @@
 Python script to download all media from any thread in 4chan, with options to download to specific folder, make subfolders for each thread or board and autoscrap per specified minutes.
 
 Dependencies: requests,bs4
-Usage: 4chan.py [-h] (-t THREAD | -l LIST) [-f USERFOLDER] [-m MINUTES] [-b BATCH]
+Usage:  4chan.py [-h] (-t THREAD | -l LIST) [-f USERFOLDER] [-m MINUTES] [-b BATCH]
 options:
   -h, --help
   -t THREAD, --thread Thread link
