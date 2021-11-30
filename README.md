@@ -5,16 +5,24 @@ Dependencies: requests,bs4
 Usage:  4chan.py [-h] (-t THREAD | -l LIST) [-f USERFOLDER] [-m MINUTES] [-b BATCH]
 
     -h, --help
-    -t THREAD, --thread Thread link.
-  -l LIST, --list LIST  Path to list.
+    
+    -t THREAD, --thread
+    Thread link.
+    
+    -l LIST, --list LIST
+    Path to list file.
   
-  -f USERFOLDER, --folder USERFOLDER. Specify in which folder to save the thread or the link of threads and their subfolders. If folder doesnt exist or isnt specified, creates one with thread name.
-        
-  -m MINUTES, --minutes MINUTES. Autorun every -m or --minutes. OFF if not specified
+    -f USERFOLDER, --folder USERFOLDER.
+    Specify in which folder to save the thread or the link of threads and their subfolders. 
+    If folder doesnt exist or isnt specified, creates one with thread name.
+
+    -m MINUTES, --minutes MINUTES
+    Autorun every -m or --minutes. OFF if not specified.
   
-  -b BATCH, --batch BATCH. Batch download without making subfolder for threads
+    -b BATCH, --batch BATCH
+    Batch download without making subfolder for threads.
   
-Example: 
+Examples: 
 
     python 4chan.py -l 4links.txt -f .
 Will download all media from each link on 4links.txt on the folder you run it from with subfolders for each link.
