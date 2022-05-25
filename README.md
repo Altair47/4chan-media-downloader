@@ -21,6 +21,9 @@ Usage:  4chan.py [-h] (-t THREAD | -l LIST) [-f USERFOLDER] [-m MINUTES] [-b BAT
   
     -b BATCH, --batch BATCH
     Batch download without making subfolder for threads.
+
+    -e EXTENSION, --extension EXTENSION
+      Specify the extension of the files to download.
   
 Examples: 
 
