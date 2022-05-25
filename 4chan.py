@@ -5,11 +5,12 @@ import requests, time, os, sys, re, argparse
 from bs4 import BeautifulSoup
 parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument("-t", "--thread", help="Link to thread. REQUIRED")
-group.add_argument("-l", "--list", help="Path to list. REQUIRED")
-parser.add_argument("-f", "--folder",dest="userfolder", help="Specify in which folder to save the thread. If folder doesnt exist or not specified creates one with thread name")
-parser.add_argument("-m", "--minutes", help="Autorun every -m or --minutes. OFF if not specified")
-parser.add_argument("-b", "--batch", help="Batch download without making subfolder for threads")
+group.add_argument("-t", "--thread", help="Link to thread. REQUIRED.")
+group.add_argument("-l", "--list", help="Path to list. REQUIRED.")
+parser.add_argument("-f", "--folder",dest="userfolder", help="Specify in which folder to save the thread. If folder doesnt exist or not specified creates one with thread name.")
+parser.add_argument("-m", "--minutes", help="Autorun every -m or --minutes. OFF if not specified.")
+parser.add_argument("-b", "--batch", help="Batch download without making subfolder for threads.",action='store_true')
+parser.add_argument("-e", "--extension", help="Download only files with the specific extension.")
 args = parser.parse_args()
 forb=('<>:"/\|?*')
 left='href="//'
@@ -42,7 +43,7 @@ def Scrap(url):
                                 fw.write(line)
                 print("Deleted from the file!")
             except:
-                print("Oops! something error")
+                print("Oops! something's wrong")
             return
     except:
         print('Thread exists.')
@@ -58,6 +59,9 @@ def Scrap(url):
         s = (str(c))      #s=whole eg[<div class="fileText" id="fT3962922">File: <a href="//i.4cdn.org/wsg/1622452136055.webm" target="_blank">Some stuff never changes.webm</a> (3.85 MB, 336x190)</div>]
         n = (str(c.text)) #n=name  eg[File: Some stuff never changes.webm (3.85 MB, 336x190)]
         link = s[s.index(left)+len(left):s.index(right)] #[i.4cdn.org/wsg/1622224877680.webm]
+        if args.extension:
+            if not link[link.rfind(".")+1:] == args.extension:
+                continue
         name = c.find('a', href=True).text               #[let it sneed.webm]
         name = ' '.join((name[:name.rfind('.')],link[link.rfind('/')+1:])) #[let it sneed 1622224877680.webm]
         #Calculating size if required
