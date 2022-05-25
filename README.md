@@ -4,19 +4,19 @@ Python script to download all media from any thread in 4chan, with options to do
 Dependencies: requests,bs4
 Usage: 4chan.py [-h] (-t THREAD | -l LIST) [-f USERFOLDER] [-m MINUTES] [-b BATCH]
 options:
-  -h, --help
-  -t THREAD, --thread
-        Thread's link.
-  -l LIST, --list
-        Path to list.
-  -f USERFOLDER, --folder
-        Specify in which folder to save the thread or the link of threads and their subfolders. If folder doesnt exist or isnt specified, creates one with thread name.
-  -m MINUTES, --minutes
-        Autorun every -m or --minutes. OFF if not specified
-  -b BATCH, --batch
-        Batch download without making subfolder for threads
-  -e EXTENSION, --extension
-        Download only files with the specific extension.
+      -h, --help
+      -t THREAD, --thread
+            Thread's link.
+      -l LIST, --list
+            Path to list.
+      -f USERFOLDER, --folder
+            Specify in which folder to save the thread or the link of threads and their subfolders. If folder doesnt exist or isnt specified, creates one with thread name.
+      -m MINUTES, --minutes
+            Autorun every -m or --minutes. OFF if not specified
+      -b BATCH, --batch
+            Batch download without making subfolder for threads
+      -e EXTENSION, --extension
+            Download only files with the specific extension.
 Example: 
 python 4chan.py -l 4links.txt -f .
       Will download all media from each link on 4links.txt on the folder you run it from with subfolders for each link.
