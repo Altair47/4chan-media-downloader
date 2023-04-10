@@ -93,7 +93,6 @@ if __name__ == '__main__':
     if args.userfolder:
         if not os.path.exists(args.userfolder):
             mkdir(args.userfolder)
-        os.chdir(args.userfolder)
     while True:
         if args.image:
             import subprocess
