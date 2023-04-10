@@ -11,6 +11,7 @@ parser.add_argument("-f", "--folder",dest="userfolder", help="Specify in which f
 parser.add_argument("-m", "--minutes", help="Autorun every -m or --minutes. OFF if not specified.")
 parser.add_argument("-b", "--batch", help="Batch download without making subfolder for threads.",action='store_true')
 parser.add_argument("-e", "--extension", help="Download only files with the specific extension.")
+parser.add_argument("-i", "--image", help="Image preview while downloading.",action='store_true')
 args = parser.parse_args()
 forb=('<>:"/\|?*')
 left='href="//'
@@ -27,7 +28,7 @@ def mkdir(dirname):
 
 def Scrap(url):
     r = requests.get(url)
-    soup = BeautifulSoup(requests.get(url).text, 'lxml')
+    soup = BeautifulSoup(requests.get(url).text, 'html.parser')
     try:
         #If thread is dead, attempt to delete the line from the 4links.txt
         if soup.h2.text=='404 Not Found':
@@ -77,21 +78,30 @@ def Scrap(url):
                 name = name.replace(char,'!')
             open(name, 'wb').write(k.content)
             print ('HTML:',s,'\nLINK: ',s[s.index(left)+len(left):s.index(right)],'\nFull',c.text,'\nCLEAN NAME:', (n[n.index('File: ')+len('File: '):n.index(' (')]),'\nINDEX:',index,'\nSaved as:',name,'\nPercentage Completed:',round((index+1)*100/len(containers)),'\nFrom:',dirname,'\n') #rule of three for percentage
+            if args.image:
+                cmd = ["ffmpeg", "-i", name, "-vframes", "1", "-f", "image2pipe", "-c:v", "mjpeg", "-", "-hide_banner", "-loglevel", "error"]
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+                stdout, _ = proc.communicate()
+                output = climage.convert(BytesIO(stdout), is_unicode=True, is_256color=1, width=50)
+                print(output)
+                print(BytesIO(stdout))
     os.chdir('..')
 
 #ARGS:([-t, --thread] or [-l,--list] Required), [-f, --folder (default 4chan folder)] [-m, --minutes (default off)]
 if __name__ == '__main__':
+    oldpath = os.getcwd()
     if args.userfolder:
         if not os.path.exists(args.userfolder):
             mkdir(args.userfolder)
         os.chdir(args.userfolder)
-    else:
-        mkdir('4chan')
     while True:
+        if args.image:
+            import subprocess
+            from io import BytesIO
+            import climage
         if args.list:
-            file1 = open(args.list, 'r')
-            Lines = file1.readlines()
-            file1.close()
+            with open(args.list, 'r') as file1:
+                Lines = file1.readlines()
             Lines = [x.strip() for x in Lines]
             for url in Lines:
                 Scrap(url)
@@ -102,4 +112,5 @@ if __name__ == '__main__':
             time.sleep(int(args.minutes)*60)
         if not args.minutes:
             break
+    os.chdir(oldpath)
     print('Done!')
