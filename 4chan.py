@@ -87,7 +87,7 @@ def Scrap(url):
                 print(BytesIO(stdout))
     os.chdir('..')
 
-#ARGS:([-t, --thread] or [-l,--list] Required), [-f, --folder (default 4chan folder)] [-m, --minutes (default off)]
+#ARGS:([-t, --thread] or [-l,--list] Required), [-f, --folder (default 4chan folder)] [-m, --minutes (default off)], [-b, --batch (true/false)], [-i, --image  (true/false)]
 if __name__ == '__main__':
     oldpath = os.getcwd()
     if args.userfolder:
