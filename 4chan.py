@@ -12,19 +12,81 @@ parser.add_argument("-m", "--minutes", help="Autorun every -m or --minutes. OFF 
 parser.add_argument("-b", "--batch", help="Batch download without making subfolder for threads.",action='store_true')
 parser.add_argument("-e", "--extension", help="Download only files with the specific extension.")
 parser.add_argument("-i", "--image", help="Image preview while downloading.",action='store_true')
+parser.add_argument("-p", "--parallel", help="Split each download into a thread for pallel downloads.",action='store_true')
+parser.add_argument("-n", "--nonverbose", help="Shows info for each file downloaded [True,False]. (Disables --image if True)", action='store_true')
 args = parser.parse_args()
 forb=('<>:"/\|?*')
 left='href="//'
 right='" target'
 #Page
 #url=input("Input thread to start downloading all media: ")
+if args.parallel:
+        import threading
+
+def ImageToTerminal(fName):
+    if args.image:
+        cmd = ["ffmpeg", "-i", fName, "-vframes", "1", "-f", "image2pipe", "-c:v", "mjpeg", "-", "-hide_banner", "-loglevel", "error"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        stdout, _ = proc.communicate()
+        output = climage.convert(BytesIO(stdout), is_unicode=True, is_256color=1, width=50)
+        print(output)
+        print(BytesIO(stdout))
+
+def RemoveForbiddenChars(textToReplace):
+    for char in forb:
+        textToReplace = textToReplace.replace(char,'!')
+    return textToReplace
 
 def mkdir(dirname):
-    for char in forb:
-        dirname = dirname.replace(char,'!')
+    dirname = RemoveForbiddenChars(dirname)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     os.chdir(dirname)
+
+def ScrapSite(index,container,dirname,containers,lock):
+    containerString = (str(container))      #s=whole eg[<div class="fileText" id="fT3962922">File: <a href="//i.4cdn.org/wsg/1622452136055.webm" target="_blank">Some stuff never changes.webm</a> (3.85 MB, 336x190)</div>]
+    nameOnDownload = (str(container.text)) #n=name  eg[File: Some stuff never changes.webm (3.85 MB, 336x190)]
+    cleanName = (nameOnDownload[nameOnDownload.index('File: ')+len('File: '):nameOnDownload.index(' (')])
+    link = containerString[containerString.index(left)+len(left):containerString.index(right)] #[i.4cdn.org/wsg/1622224877680.webm]
+    if args.extension:
+        if not link[link.rfind(".")+1:] == args.extension:
+            return
+    nameOfFile = container.find('a', href=True).text    #[let it sneed.webm]
+    nameOfFile = ' '.join((nameOfFile[:nameOfFile.rfind('.')],link[link.rfind('/')+1:])) #[let it sneed 1622224877680.webm]
+    #Calculating size if required
+    #   linksize = int((urllib.request.urlopen('https://'+link)).info()['Content-Length'])
+    #   filesize= int(os.stat(name).st_size)
+    #   if os.path.exists(name) and filesize==linksize:
+    nameOfFile = RemoveForbiddenChars(nameOfFile)
+    if os.path.exists(nameOfFile):
+        #print("File'",name,"'already exists, with size:",os.stat(name).st_size)
+        return
+    else:
+        mediaContent = requests.get('http://'+link, allow_redirects=True)
+        with open(oldpath+"/"+dirname+"/"+nameOfFile, 'wb') as media:
+            media.write(mediaContent.content)
+        if not args.nonverbose:
+            if args.parallel:
+                with lock:
+                    #print('HTML:',containerString)
+                    print('LINK: ',link)
+                    print('Full',container.text)
+                    print('CLEAN NAME:',cleanName)
+                    print('INDEX:',index)
+                    print('Saved as:',nameOfFile)
+                    print('Percentage Completed:',round((index+1)*100/len(containers)))
+                    print('From:',dirname,'\n')
+                    ImageToTerminal(oldpath+"/"+dirname+"/"+nameOfFile)
+            else:
+                #print('HTML:',containerString)
+                print('LINK: ',link)
+                print('Full',container.text)
+                print('CLEAN NAME:', cleanName)
+                print('INDEX:',index)
+                print('Saved as:',nameOfFile)
+                print('Percentage Completed:',round((index+1)*100/len(containers)))
+                print('From:',dirname,'\n')
+                ImageToTerminal(oldpath+"/"+dirname+"/"+nameOfFile)
 
 def Scrap(url):
     r = requests.get(url)
@@ -55,39 +117,21 @@ def Scrap(url):
     dirname=dirname[dirname.find('-')+2:dirname.rfind('-')-1]
     if not args.batch:
         mkdir(dirname)
+    dirname = RemoveForbiddenChars(dirname)
     #Loop media download
-    for index,c in enumerate(containers):
-        s = (str(c))      #s=whole eg[<div class="fileText" id="fT3962922">File: <a href="//i.4cdn.org/wsg/1622452136055.webm" target="_blank">Some stuff never changes.webm</a> (3.85 MB, 336x190)</div>]
-        n = (str(c.text)) #n=name  eg[File: Some stuff never changes.webm (3.85 MB, 336x190)]
-        link = s[s.index(left)+len(left):s.index(right)] #[i.4cdn.org/wsg/1622224877680.webm]
-        if args.extension:
-            if not link[link.rfind(".")+1:] == args.extension:
-                continue
-        name = c.find('a', href=True).text               #[let it sneed.webm]
-        name = ' '.join((name[:name.rfind('.')],link[link.rfind('/')+1:])) #[let it sneed 1622224877680.webm]
-        #Calculating size if required
-        #   linksize = int((urllib.request.urlopen('https://'+link)).info()['Content-Length'])
-        #   filesize= int(os.stat(name).st_size)
-        #   if os.path.exists(name) and filesize==linksize:
-        if os.path.exists(name):
-            #print("File'",name,"'already exists, with size:",os.stat(name).st_size)
-            continue
-        else:
-            k = requests.get('http://'+link, allow_redirects=True)
-            for char in forb:
-                name = name.replace(char,'!')
-            open(name, 'wb').write(k.content)
-            print ('HTML:',s,'\nLINK: ',s[s.index(left)+len(left):s.index(right)],'\nFull',c.text,'\nCLEAN NAME:', (n[n.index('File: ')+len('File: '):n.index(' (')]),'\nINDEX:',index,'\nSaved as:',name,'\nPercentage Completed:',round((index+1)*100/len(containers)),'\nFrom:',dirname,'\n') #rule of three for percentage
-            if args.image:
-                cmd = ["ffmpeg", "-i", name, "-vframes", "1", "-f", "image2pipe", "-c:v", "mjpeg", "-", "-hide_banner", "-loglevel", "error"]
-                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-                stdout, _ = proc.communicate()
-                output = climage.convert(BytesIO(stdout), is_unicode=True, is_256color=1, width=50)
-                print(output)
-                print(BytesIO(stdout))
+    if args.parallel:
+        lock = threading.Lock()
+        threads = list()
+        for index,container in enumerate(containers):
+            job = threading.Thread(target=ScrapSite, args=(index,container,dirname,containers,lock))
+            threads.append(job)
+            job.start()
+        for index, thread in enumerate(threads): thread.join()
+    else:
+        for index,container in enumerate(containers):
+            ScrapSite(index,container,dirname,containers,0)
     os.chdir('..')
 
-#ARGS:([-t, --thread] or [-l,--list] Required), [-f, --folder (default 4chan folder)] [-m, --minutes (default off)], [-b, --batch (true/false)], [-i, --image  (true/false)]
 if __name__ == '__main__':
     oldpath = os.getcwd()
     if args.userfolder:
