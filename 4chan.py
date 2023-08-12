@@ -41,7 +41,6 @@ def mkdir(dirname):
     dirname = RemoveForbiddenChars(dirname)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-    os.chdir(dirname)
 
 def ScrapSite(index,container,dirname,containers,lock):
     containerString = (str(container))      #s=whole eg[<div class="fileText" id="fT3962922">File: <a href="//i.4cdn.org/wsg/1622452136055.webm" target="_blank">Some stuff never changes.webm</a> (3.85 MB, 336x190)</div>]
@@ -63,7 +62,7 @@ def ScrapSite(index,container,dirname,containers,lock):
         return
     else:
         mediaContent = requests.get('http://'+link, allow_redirects=True)
-        with open(oldpath+"/"+dirname+"/"+nameOfFile, 'wb') as media:
+        with open("/"+dirname+"/"+nameOfFile, 'wb') as media:
             media.write(mediaContent.content)
         if not args.nonverbose:
             if args.parallel:
@@ -76,7 +75,7 @@ def ScrapSite(index,container,dirname,containers,lock):
                     print('Saved as:',nameOfFile)
                     print('Percentage Completed:',round((index+1)*100/len(containers)))
                     print('From:',dirname,'\n')
-                    ImageToTerminal(oldpath+"/"+dirname+"/"+nameOfFile)
+                    ImageToTerminal("/"+dirname+"/"+nameOfFile)
             else:
                 #print('HTML:',containerString)
                 print('LINK: ',link)
@@ -86,7 +85,7 @@ def ScrapSite(index,container,dirname,containers,lock):
                 print('Saved as:',nameOfFile)
                 print('Percentage Completed:',round((index+1)*100/len(containers)))
                 print('From:',dirname,'\n')
-                ImageToTerminal(oldpath+"/"+dirname+"/"+nameOfFile)
+                ImageToTerminal("/"+dirname+"/"+nameOfFile)
 
 def Scrap(url):
     r = requests.get(url)
@@ -126,7 +125,9 @@ def Scrap(url):
             job = threading.Thread(target=ScrapSite, args=(index,container,dirname,containers,lock))
             threads.append(job)
             job.start()
-        for index, thread in enumerate(threads): thread.join()
+        for index, thread in enumerate(threads): 
+            thread.join()
+            print(thread,'joined')
     else:
         for index,container in enumerate(containers):
             ScrapSite(index,container,dirname,containers,0)
@@ -137,6 +138,7 @@ if __name__ == '__main__':
     if args.userfolder:
         if not os.path.exists(args.userfolder):
             mkdir(args.userfolder)
+            os.chdir(args.userfolder)
     while True:
         if args.image:
             import subprocess
