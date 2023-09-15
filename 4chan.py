@@ -14,6 +14,7 @@ parser.add_argument("-e", "--extension", help="Download only files with the spec
 parser.add_argument("-i", "--image", help="Image preview while downloading.",action='store_true')
 parser.add_argument("-p", "--parallel", help="Split each download into a thread for pallel downloads.",action='store_true')
 parser.add_argument("-n", "--nonverbose", help="Shows info for each file downloaded [True,False]. (Disables --image if True)", action='store_true')
+parser.add_argument("-g", "--gui", help="will use GUI if specified", action='store_true')
 args = parser.parse_args()
 forb=('<>:"/\|?*')
 left='href="//'
@@ -57,12 +58,12 @@ def ScrapSite(index,container,dirname,containers,lock):
     #   filesize= int(os.stat(name).st_size)
     #   if os.path.exists(name) and filesize==linksize:
     nameOfFile = RemoveForbiddenChars(nameOfFile)
-    if os.path.exists(nameOfFile):
+    if os.path.exists(dirname+"/"+nameOfFile):
         #print("File'",name,"'already exists, with size:",os.stat(name).st_size)
         return
     else:
         mediaContent = requests.get('http://'+link, allow_redirects=True)
-        with open("/"+dirname+"/"+nameOfFile, 'wb') as media:
+        with open(dirname+"/"+nameOfFile, 'wb') as media:
             media.write(mediaContent.content)
         if not args.nonverbose:
             if args.parallel:
@@ -75,7 +76,7 @@ def ScrapSite(index,container,dirname,containers,lock):
                     print('Saved as:',nameOfFile)
                     print('Percentage Completed:',round((index+1)*100/len(containers)))
                     print('From:',dirname,'\n')
-                    ImageToTerminal("/"+dirname+"/"+nameOfFile)
+                    ImageToTerminal(dirname+"/"+nameOfFile)
             else:
                 #print('HTML:',containerString)
                 print('LINK: ',link)
@@ -85,7 +86,7 @@ def ScrapSite(index,container,dirname,containers,lock):
                 print('Saved as:',nameOfFile)
                 print('Percentage Completed:',round((index+1)*100/len(containers)))
                 print('From:',dirname,'\n')
-                ImageToTerminal("/"+dirname+"/"+nameOfFile)
+                ImageToTerminal(dirname+"/"+nameOfFile)
 
 def Scrap(url):
     r = requests.get(url)
@@ -131,13 +132,16 @@ def Scrap(url):
     else:
         for index,container in enumerate(containers):
             ScrapSite(index,container,dirname,containers,0)
-    os.chdir('..')
 
 if __name__ == '__main__':
     oldpath = os.getcwd()
+#    if args.giu:
+#        import tkinter as tk
     if args.userfolder:
         if not os.path.exists(args.userfolder):
             mkdir(args.userfolder)
+            os.chdir(args.userfolder)
+        else:
             os.chdir(args.userfolder)
     while True:
         if args.image:
